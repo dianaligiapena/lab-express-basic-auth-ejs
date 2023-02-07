@@ -10,17 +10,83 @@ router.get("/signup", (req, res) => {
 
 router.post('/signup', async (req, res) => {
     const body = {...req.body};
-    const salt = await bcrypt.genSalt(13);
-    const passwordHash = await bcrypt.hashSync(body.password, salt);
-    delete body.password;
-    body.passwordHash = passwordHash;
-    try {
-        await User.create(body);
-        res.send(body);
+
+    if (body.password.length < 6) {
+        res.render('auth/signup', { errorMessage: 
+            "Password must be at least 6 characters long", body: req.body });
     }
-    catch (err) {
-        console.log(err);
+    else {
+        const salt = await bcrypt.genSalt(13);
+        const passwordHash = bcrypt.hashSync(body.password, salt);
+
+        delete body.password;
+        body.passwordHash = passwordHash;
+
+        console.log(body);
+
+        try {
+            await User.create(body);
+            res.send(body);
+        }
+        catch (error) {
+            if (error.code === 11000) {
+                console.log('Duplicate');
+                res.render('auth/signup', { 
+                    errorMessage: "User already exists", 
+                    userData: req.body,
+                 });
+            } 
+            else {
+                res.render('auth/signup', { 
+                    errorMessage: "Something went wrong", 
+                    userData: req.body,
+                 });
+            }
+          
+        }
     }
+
+});
+
+router.get('/login', (req, res) => {
+    res.render('auth/login');
+})
+
+router.post('/login', async (req, res) => {
+    console.log('SESSION =====> ', req.session);
+
+    const body = {...req.body};
+
+    const userMatch = await User.find({username: body.username}); // find -> array
+    console.log(userMatch);
+    console.log("it s a match")
+
+    if (userMatch.length) {  
+        // user found
+        const user = userMatch[0];
+
+        if (bcrypt.compareSync(body.password, user.passwordHash)) {
+            // correct password
+            console.log("correct password");
+            res.render('profile', { user });
+        } else {
+            // incorrect password
+            console.log("incorrect password");
+            res.render('auth/login', { 
+                errorMessage: "Incorrect password", 
+                userData: req.body,
+             });
+        }
+    } else { 
+        // user not found
+        console.log("user not found");
+        res.render('auth/login', { 
+            errorMessage: "User not found", 
+            userData: req.body,
+         });
+
+    }
+
 });
 
 module.exports = router;
