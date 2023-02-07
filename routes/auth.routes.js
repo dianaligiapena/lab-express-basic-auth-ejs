@@ -25,8 +25,10 @@ router.post('/signup', async (req, res) => {
         console.log(body);
 
         try {
-            await User.create(body);
+            let newUser = await User.create(body);
+            req.session.user = newUser;
             res.send(body);
+            res.redirect('/profile');
         }
         catch (error) {
             if (error.code === 11000) {
@@ -53,7 +55,7 @@ router.get('/login', (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
-    console.log('SESSION =====> ', req.session);
+    console.log('SESSION =====> ', req.session); /////////////// console log  session
 
     const body = {...req.body};
 
@@ -61,14 +63,21 @@ router.post('/login', async (req, res) => {
     console.log(userMatch);
     console.log("it s a match")
 
-    if (userMatch.length) {  
+    if (userMatch.length) {   // find has an element (match)
         // user found
         const user = userMatch[0];
 
-        if (bcrypt.compareSync(body.password, user.passwordHash)) {
+        if (bcrypt.compareSync(body.password, user.passwordHash)) { // return a boolean
             // correct password
             console.log("correct password");
-            res.render('profile', { user });
+
+            const tempUser = {};
+            tempUser.username = user.username;
+            delete tempUser.passwordHash;
+
+            req.session.user = tempUser; ////////////////// really important line
+            res.redirect('/profile');
+            
         } else {
             // incorrect password
             console.log("incorrect password");
@@ -88,5 +97,7 @@ router.post('/login', async (req, res) => {
     }
 
 });
+
+
 
 module.exports = router;
