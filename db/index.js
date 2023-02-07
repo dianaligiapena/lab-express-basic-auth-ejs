@@ -11,6 +11,7 @@ const MONGO_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1/lab-express-ba
 mongoose
   .connect(MONGO_URI)
   .then((x) => {
+    //Mat's code:  const databaseName = x.connections[0].name;
     console.log(`Connected to Mongo! Database name: "${x.connections[0].name}"`);
   })
   .catch((err) => {

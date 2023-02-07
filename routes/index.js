@@ -1,4 +1,5 @@
 const express = require('express');
+const { isLoggedIn } = require('../middleware/route-guard');
 const router = require("express").Router();
 
 /* GET home page */
@@ -6,7 +7,7 @@ router.get("/", (req, res, next) => {
   res.render("index");
 });
 
-router.get("/profile", (req, res, next) => {
+router.get("/profile", isLoggedIn, (req, res, next) => {
   console.log('SESSION =====> ', req.session);
 
   if (!req.session.user) {

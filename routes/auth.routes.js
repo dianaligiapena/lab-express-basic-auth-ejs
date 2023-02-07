@@ -71,10 +71,10 @@ router.post('/login', async (req, res) => {
             // correct password
             console.log("correct password");
 
-            const tempUser = {};
-            tempUser.username = user.username;
-            delete tempUser.passwordHash;
-
+            const tempUser = {
+                username : user.username,
+            };
+            
             req.session.user = tempUser; ////////////////// really important line
             res.redirect('/profile');
             
